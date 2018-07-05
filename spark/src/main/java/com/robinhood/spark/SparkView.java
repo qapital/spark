@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2016 Robinhood Markets, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -89,17 +89,24 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     }
 
     // styleable values
-    @ColorInt private int lineColor;
-    @ColorInt private int fillColor;
+    @ColorInt
+    private int lineColor;
+    @ColorInt
+    private int fillColor;
     private float lineWidth;
     private float cornerRadius;
-    @FillType private int fillType = FillType.NONE;
-    @ColorInt private int baseLineColor;
+    @FillType
+    private int fillType = FillType.NONE;
+    @ColorInt
+    private int baseLineColor;
     private float baseLineWidth;
-    @ColorInt private int scrubLineColor;
+    @ColorInt
+    private int scrubLineColor;
     private float scrubLineWidth;
     private boolean scrubEnabled;
-    private @Nullable SparkAnimator sparkAnimator;
+    private boolean ignorePaddingForScrub;
+    private @Nullable
+    SparkAnimator sparkAnimator;
 
     // the onDraw data
     private final Path renderPath = new Path();
@@ -108,7 +115,8 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     private final Path scrubLinePath = new Path();
 
     // adapter
-    private @Nullable SparkAdapter adapter;
+    private @Nullable
+    SparkAdapter adapter;
 
     // misc fields
     private ScaleHelper scaleHelper;
@@ -116,9 +124,12 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     private Paint sparkFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint baseLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint scrubLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private @Nullable OnScrubListener scrubListener;
-    private @NonNull ScrubGestureDetector scrubGestureDetector;
-    private @Nullable Animator pathAnimator;
+    private @Nullable
+    OnScrubListener scrubListener;
+    private @NonNull
+    ScrubGestureDetector scrubGestureDetector;
+    private @Nullable
+    Animator pathAnimator;
     private final RectF contentRect = new RectF();
 
     private List<Float> xPoints;
@@ -165,6 +176,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         baseLineColor = a.getColor(R.styleable.SparkView_spark_baseLineColor, 0);
         baseLineWidth = a.getDimension(R.styleable.SparkView_spark_baseLineWidth, 0);
         scrubEnabled = a.getBoolean(R.styleable.SparkView_spark_scrubEnabled, true);
+        ignorePaddingForScrub = a.getBoolean(R.styleable.SparkView_spark_ignorePaddingForScrub, true);
         scrubLineColor = a.getColor(R.styleable.SparkView_spark_scrubLineColor, baseLineColor);
         scrubLineWidth = a.getDimension(R.styleable.SparkView_spark_scrubLineWidth, lineWidth);
         boolean animateChanges = a.getBoolean(R.styleable.SparkView_spark_animateChanges, false);
@@ -203,10 +215,23 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
 
         if (isInEditMode()) {
             this.setAdapter(new SparkAdapter() {
-                private final float[] yData = new float[] {68,22,31,57,35,79,86,47,34,55,80,72,99,66,47,42,56,64,66,80,97,10,43,12,25,71,47,73,49,36};
-                @Override public int getCount() { return yData.length; }
-                @NonNull @Override public Object getItem(int index) { return yData[index]; }
-                @Override public float getY(int index) { return yData[index]; }
+                private final float[] yData = new float[]{68, 22, 31, 57, 35, 79, 86, 47, 34, 55, 80, 72, 99, 66, 47, 42, 56, 64, 66, 80, 97, 10, 43, 12, 25, 71, 47, 73, 49, 36};
+
+                @Override
+                public int getCount() {
+                    return yData.length;
+                }
+
+                @NonNull
+                @Override
+                public Object getItem(int index) {
+                    return yData[index];
+                }
+
+                @Override
+                public float getY(int index) {
+                    return yData[index];
+                }
             });
         }
 
@@ -313,7 +338,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
      * (for instance {@link SparkAdapter} has not been set or has less than 2 points of data). This
      * method will return the unscaled value.
      *
-     * @param x    the value to scale (should be the same units as your graph's data points)
+     * @param x the value to scale (should be the same units as your graph's data points)
      * @return the pixel coordinates of where this point is located in SparkView's bounds
      */
     public float getScaledX(float x) {
@@ -329,7 +354,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
      * (for instance {@link SparkAdapter} has not been set or has less than 2 points of data). This
      * method will return the unscaled value.
      *
-     * @param y    the value to scale (should be the same units as your graph's data points)
+     * @param y the value to scale (should be the same units as your graph's data points)
      * @return the pixel coordinates of where this point is located in SparkView's bounds
      */
     public float getScaledY(float y) {
@@ -362,8 +387,8 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     private void setScrubLine(float x) {
         x = resolveBoundedScrubLine(x);
         scrubLinePath.reset();
-        scrubLinePath.moveTo(x, getPaddingTop());
-        scrubLinePath.lineTo(x, getHeight() - getPaddingBottom());
+        scrubLinePath.moveTo(x, ignorePaddingForScrub ? 0 : getPaddingTop());
+        scrubLinePath.lineTo(x, ignorePaddingForScrub ? getHeight() : getHeight() - getPaddingBottom());
         invalidate();
     }
 
@@ -398,7 +423,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         super.onDraw(canvas);
         canvas.drawPath(baseLinePath, baseLinePaint);
 
-        if(fillType != FillType.NONE){
+        if (fillType != FillType.NONE) {
             canvas.drawPath(renderPath, sparkFillPaint);
         }
 
@@ -409,7 +434,8 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     /**
      * Get the color of the sparkline
      */
-    @ColorInt public int getLineColor() {
+    @ColorInt
+    public int getLineColor() {
         return lineColor;
     }
 
@@ -425,7 +451,8 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     /**
      * Get the color of the sparkline
      */
-    @ColorInt public int getFillColor() {
+    @ColorInt
+    public int getFillColor() {
         return fillColor;
     }
 
@@ -479,6 +506,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
 
     /**
      * Animator class to animate Spark
+     *
      * @return a {@link SparkAnimator} or null
      */
     @Nullable
@@ -488,6 +516,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
 
     /**
      * Animator class to animate Spark
+     *
      * @param sparkAnimator - a {@link SparkAnimator}
      */
     public void setSparkAnimator(@Nullable SparkAnimator sparkAnimator) {
@@ -580,7 +609,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     }
 
     /**
-    /**
+     * /**
      * Set the {@link Paint} to be used to draw the spark fill. Warning: setting a paint other than
      * the instance returned by {@link #getSparkFillPaint()} may result in loss of style attributes
      * specified on this view.
@@ -598,10 +627,12 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     public Paint getSparkFillPaint() {
         return sparkFillPaint;
     }
+
     /**
      * Get the color of the base line
      */
-    @ColorInt public int getBaseLineColor() {
+    @ColorInt
+    public int getBaseLineColor() {
         return baseLineColor;
     }
 
@@ -652,7 +683,8 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     /**
      * Get the color of the scrub line
      */
-    @ColorInt public int getScrubLineColor() {
+    @ColorInt
+    public int getScrubLineColor() {
         return scrubLineColor;
     }
 
@@ -736,6 +768,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
 
     /**
      * Returns a copy of current graphic X points
+     *
      * @return current graphic X points
      */
     @NonNull
@@ -745,6 +778,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
 
     /**
      * Returns a copy of current graphic Y points
+     *
      * @return current graphic Y points
      */
     @NonNull
@@ -881,7 +915,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         if (index >= 0) return index;
 
         // otherwise, calculate the binary search's specified insertion index
-        index = - 1 - index;
+        index = -1 - index;
 
         // if we're inserting at 0, then our guaranteed nearest index is 0
         if (index == 0) return index;
