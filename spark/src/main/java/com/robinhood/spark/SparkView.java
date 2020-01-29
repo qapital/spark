@@ -942,6 +942,7 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
             int index = getNearestIndex(xPoints, x);
             if (scrubListener != null) {
                 scrubListener.onScrubbed(adapter.getItem(index));
+                scrubListener.onScrubbedCoordinates(x, y);
             }
         }
 
@@ -964,6 +965,13 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
          * that the user has stopped scrubbing.
          */
         void onScrubbed(@Nullable Object value);
+
+        /**
+         * Indicates the user is currently scrubbing and delivers the current coordinates
+         * @param x the current x-coordinate during scrubbing
+         * @param y the current y-coordinate during scrubbing
+         */
+        void onScrubbedCoordinates(float x, float y);
     }
 
     private final DataSetObserver dataSetObserver = new DataSetObserver() {
