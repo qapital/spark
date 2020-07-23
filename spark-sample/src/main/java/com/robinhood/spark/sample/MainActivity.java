@@ -59,6 +59,11 @@ public class MainActivity extends AppCompatActivity {
                     scrubInfoTextView.setText(getString(R.string.scrub_format, value));
                 }
             }
+
+            @Override
+            public void onScrubbedCoordinates(float x, float y) {
+
+            }
         });
 
         findViewById(R.id.random_button).setOnClickListener(new View.OnClickListener() {

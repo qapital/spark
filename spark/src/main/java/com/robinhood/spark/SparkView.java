@@ -129,6 +129,8 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
     private @NonNull
     ScrubGestureDetector scrubGestureDetector;
     private @Nullable
+    OnBaselineUpdatedListener baselineUpdatedListener;
+    private @Nullable
     Animator pathAnimator;
     private final RectF contentRect = new RectF();
 
@@ -305,6 +307,9 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
             float scaledBaseLine = scaleHelper.getY(adapter.getBaseLine());
             baseLinePath.moveTo(0, scaledBaseLine);
             baseLinePath.lineTo(getWidth(), scaledBaseLine);
+            if (baselineUpdatedListener != null) {
+                baselineUpdatedListener.onBaselineUpdated(scaledBaseLine);
+            }
         }
 
         renderPath.reset();
@@ -744,6 +749,15 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
         this.scrubListener = scrubListener;
     }
 
+    @Nullable
+    public OnBaselineUpdatedListener getBaselineUpdatedListener() {
+        return baselineUpdatedListener;
+    }
+
+    public void setBaselineUpdatedListener(@Nullable OnBaselineUpdatedListener baselineUpdatedListener) {
+        this.baselineUpdatedListener = baselineUpdatedListener;
+    }
+
     /**
      * Get the backing {@link SparkAdapter}
      */
@@ -972,6 +986,10 @@ public class SparkView extends View implements ScrubGestureDetector.ScrubListene
          * @param y the current y-coordinate during scrubbing
          */
         void onScrubbedCoordinates(float x, float y);
+    }
+
+    public interface OnBaselineUpdatedListener {
+        void onBaselineUpdated(float y);
     }
 
     private final DataSetObserver dataSetObserver = new DataSetObserver() {
